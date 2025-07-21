@@ -94,4 +94,31 @@ struct Task: Identifiable, Codable {
         isCompleted = false
         completedAt = nil
     }
+    
+    // MARK: - AI Testing Demo Functions
+    
+    /// Determines if this task should be escalated based on priority and overdue status
+    /// - Returns: True if task needs escalation
+    func shouldEscalate() -> Bool {
+        // High priority tasks that are overdue should always escalate
+        if priority == .high && isOverdue {
+            return true
+        }
+        
+        // Medium priority tasks overdue by more than 2 days
+        if priority == .medium && isOverdue {
+            guard let dueDate = dueDate else { return false }
+            let daysSinceOverdue = Calendar.current.dateComponents([.day], from: dueDate, to: Date()).day ?? 0
+            return daysSinceOverdue > 2
+        }
+        
+        // Low priority tasks only escalate after 1 week overdue
+        if priority == .low && isOverdue {
+            guard let dueDate = dueDate else { return false }
+            let daysSinceOverdue = Calendar.current.dateComponents([.day], from: dueDate, to: Date()).day ?? 0
+            return daysSinceOverdue > 7
+        }
+        
+        return false
+    }
 } 

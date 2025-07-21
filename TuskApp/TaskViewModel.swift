@@ -245,4 +245,67 @@ class TaskViewModel: ObservableObject {
         tasks = sampleTasks.dropLast() + [completedTask]
         saveTasks()
     }
+    
+    // MARK: - AI Testing Demo Functions
+    // These functions are intentionally added WITHOUT tests 
+    // to demonstrate AI test generation capabilities
+    
+    /// Archives completed tasks older than specified days
+    /// - Parameter days: Number of days to consider for archiving
+    /// - Returns: Number of tasks archived
+    func archiveCompletedTasks(olderThan days: Int) -> Int {
+        let cutoffDate = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
+        let tasksToArchive = tasks.filter { $0.isCompleted && $0.completedAt != nil && $0.completedAt! < cutoffDate }
+        
+        tasks.removeAll { task in
+            tasksToArchive.contains { $0.id == task.id }
+        }
+        
+        saveTasks()
+        return tasksToArchive.count
+    }
+    
+    /// Calculates productivity score based on task completion patterns
+    /// - Returns: Productivity score from 0.0 to 1.0
+    func calculateProductivityScore() -> Double {
+        guard !tasks.isEmpty else { return 0.0 }
+        
+        let completedTasks = tasks.filter { $0.isCompleted }
+        let overdueTasks = tasks.filter { $0.isOverdue }
+        
+        let completionRate = Double(completedTasks.count) / Double(tasks.count)
+        let overdueRate = Double(overdueTasks.count) / Double(tasks.count)
+        
+        // Complex scoring algorithm that needs testing
+        let baseScore = completionRate * 0.7
+        let overdueImpact = overdueRate * 0.3
+        let finalScore = max(0.0, baseScore - overdueImpact)
+        
+        return min(1.0, finalScore)
+    }
+    
+    /// Suggests optimal task scheduling based on priorities and due dates
+    /// - Returns: Array of task IDs in suggested order
+    func suggestTaskSchedule() -> [UUID] {
+        let pendingTasks = tasks.filter { !$0.isCompleted }
+        
+        // Complex scheduling logic that AI should test
+        let sortedTasks = pendingTasks.sorted { task1, task2 in
+            // Priority weight
+            let priority1Weight = task1.priority.rawValue * 10
+            let priority2Weight = task2.priority.rawValue * 10
+            
+            // Due date urgency
+            let urgency1 = task1.dueDate?.timeIntervalSinceNow ?? Double.infinity
+            let urgency2 = task2.dueDate?.timeIntervalSinceNow ?? Double.infinity
+            
+            // Combined score
+            let score1 = Double(priority1Weight) - (urgency1 / 86400) // Convert to days
+            let score2 = Double(priority2Weight) - (urgency2 / 86400)
+            
+            return score1 > score2
+        }
+        
+        return sortedTasks.map { $0.id }
+    }
 } 
